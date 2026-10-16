@@ -1,0 +1,19 @@
+type,name,value,unit,source,comment
+geography,Germany,,,,
+geography,France,,,,
+geography,Italy,,,,
+product,Product A (oral solid),,,,
+product,Product B (injectable),,,,
+setting,granularity,Quarterly,,,
+setting,channels,Yes,,,
+assumption,Market size,12400,,IQVIA,2024 baseline
+assumption,Market growth rate,3.5,,Published literature,
+assumption,Market segmentation,64,,Payer data,
+assumption,Sandoz share,24,,Internal estimate,
+assumption,Competitive share,38,,IQVIA,
+assumption,Price,118,,Internal estimate,
+assumption,Gx/Bio penetration,38,,Analogue,
+assumption,Net price discount vs originator,35,,Payer data,
+assumption,Launch timing,2028,,Internal estimate,
+assumption,Peak patients per site,18,patients,Expert panel,Custom: not in library
+assumption,Formulary delay,6,months,Expert panel,Custom: not in library

@@ -131,8 +131,8 @@ export function Breadcrumbs() {
   const crumbs: { label: string; to: number }[] = [{ label: 'Start', to: 1 }]
   if (step >= 2) {
     if (path) crumbs.push({ label: path === 'epi' ? 'Epidemiology' : 'Market', to: 1 })
-    crumbs.push({ label: level ? (level === 'sdz' ? 'Sandoz level' : 'Market level') : 'Forecast level', to: 2 })
-    for (const st of STEPS.slice(2, step)) crumbs.push({ label: st.name, to: st.n })
+    if (level) crumbs.push({ label: level === 'sdz' ? 'Sandoz level' : 'Market level', to: 1 })
+    for (const st of STEPS.slice(1, step)) crumbs.push({ label: st.name, to: st.n })
   }
   return (
     <nav aria-label="Breadcrumb" className="bg-white border-b border-rule">

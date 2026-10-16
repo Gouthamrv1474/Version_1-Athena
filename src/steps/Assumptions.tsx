@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Modal, StepFooter, StepHeader } from '../components/common'
-import { SOURCES } from '../data/lists'
+import { SetupUpload } from '../components/SetupUpload'
 import { LIBRARY_IDS, PARAMS } from '../data/parameters'
 import { definedCount, useForecast } from '../store/forecast'
 
@@ -17,6 +17,8 @@ export function Assumptions() {
     <div>
       <StepHeader n={3} title="Define assumptions"
         lead={`Provide the key assumptions for your ${path === 'epi' ? 'epidemiology' : 'market'}-based, ${level === 'sdz' ? 'Sandoz-level' : 'market-level'} forecast. The model uses these with the inputs in the next step.`} />
+
+      <SetupUpload compact />
 
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-3" aria-live="polite">
@@ -37,9 +39,9 @@ export function Assumptions() {
         </div>
       ) : (
         <div className="card overflow-x-auto">
-          <table className="tbl min-w-[780px]">
+          <table className="tbl min-w-[640px]">
             <thead>
-              <tr><th className="w-[24%]">Parameter</th><th className="w-[26%]">Value</th><th className="w-[20%]">Source</th><th>Comments</th><th className="w-10"><span className="sr-only">Remove</span></th></tr>
+              <tr><th className="w-[28%]">Parameter</th><th className="w-[32%]">Value</th><th>Comments</th><th className="w-10"><span className="sr-only">Remove</span></th></tr>
             </thead>
             <tbody>
               {assumptions.map((a) => {
@@ -62,12 +64,6 @@ export function Assumptions() {
                           <span className="text-[11px] text-muted w-[84px] shrink-0 leading-tight">{a.unit}</span>
                         )}
                       </div>
-                    </td>
-                    <td>
-                      <select className="input" aria-label={`${a.name || 'Parameter'} source`} value={a.source} onChange={(e) => setAssumption(a.id, { source: e.target.value })}>
-                        <option value="">Select source</option>
-                        {SOURCES.map((s) => <option key={s}>{s}</option>)}
-                      </select>
                     </td>
                     <td>
                       <input className="input" aria-label={`${a.name || 'Parameter'} comments`} placeholder="Add a note" value={a.comment} onChange={(e) => setAssumption(a.id, { comment: e.target.value })} />

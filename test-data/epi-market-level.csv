@@ -1,0 +1,13 @@
+type,name,value,unit,source,comment
+geography,United States,,,,
+product,Product C (biosimilar mAb),,,,
+setting,granularity,Annual,,,
+setting,channels,No,,,
+assumption,Population,84.2,million,Published literature,
+assumption,Incidence rate,62,per 100k,Published literature,
+assumption,Prevalence rate,1.8,%,Published literature,
+assumption,Diagnosis rate,71,%,Expert panel,
+assumption,Treatment rate,58,%,Expert panel,
+assumption,Uptake curve (peak),45,% at year 5,Analogue,
+assumption,Persistence at 12 months,62,%,Payer data,Library item not in default table
+assumption,Patient copay,15,USD,Payer data,Custom: not in library

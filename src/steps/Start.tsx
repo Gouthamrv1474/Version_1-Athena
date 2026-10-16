@@ -2,6 +2,11 @@ import { StepFooter, StepHeader } from '../components/common'
 import { useResetGuard } from '../components/useReset'
 import { useForecast } from '../store/forecast'
 
+const LEVELS = [
+  { id: 'market' as const, name: 'Market level', body: 'Forecast the total market, such as size and segments, across the selected geography.' },
+  { id: 'sdz' as const, name: 'Sandoz level', body: 'Forecast Sandoz share and products within the Sandoz portfolio, through to net sales and NPV.' },
+]
+
 const OPTIONS = [
   {
     id: 'epi' as const,
@@ -31,11 +36,13 @@ const OPTIONS = [
 export function Start() {
   const path = useForecast((s) => s.path)
   const setPath = useForecast((s) => s.setPath)
+  const level = useForecast((s) => s.level)
+  const setLevel = useForecast((s) => s.setLevel)
   const { request, dialog } = useResetGuard()
 
   return (
     <div>
-      <StepHeader n={1} title="Where would you like to start?" lead="Pick the input you trust most. This sets the parameters you'll fill in and the colour of the workspace." />
+      <StepHeader n={1} title="Where would you like to start?" lead="Pick the input you trust most, then the forecast level. Together they set the parameters you'll fill in." />
       <div role="radiogroup" aria-label="Starting point" className="grid sm:grid-cols-2 gap-4">
         {OPTIONS.map((o) => {
           const on = path === o.id
@@ -57,6 +64,29 @@ export function Start() {
           )
         })}
       </div>
+      {path && (
+        <section className="mt-6 rise" aria-labelledby="level-h">
+          <h2 id="level-h" className="eyebrow mb-3">Forecast level</h2>
+          <div role="radiogroup" aria-label="Forecast level" className="grid sm:grid-cols-2 gap-4">
+            {LEVELS.map((l) => {
+              const on = level === l.id
+              return (
+                <button key={l.id} role="radio" aria-checked={on}
+                  onClick={() => l.id !== level && request(() => setLevel(l.id))}
+                  className={`text-left rounded-md border-2 p-4 transition-colors ${on ? 'border-accent bg-accent-tint' : 'border-rule bg-white hover:border-[#9db4d3]'}`}>
+                  <div className="flex justify-between items-center">
+                    <span className="title text-[20px]">{l.name}</span>
+                    <span className={`grid h-5 w-5 place-items-center rounded-full border-2 ${on ? 'border-accent' : 'border-[#9db4d3]'}`}>
+                      {on && <span className="h-2.5 w-2.5 rounded-full bg-accent" />}
+                    </span>
+                  </div>
+                  <p className="text-muted mt-1 text-[13px]">{l.body}</p>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      )}
       <StepFooter next={2} />
       {dialog}
     </div>

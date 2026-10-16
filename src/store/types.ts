@@ -18,7 +18,7 @@ export interface Sku { sku: string; share: number; priceIndex: number }
 
 export interface Scope {
   geos: string[]
-  product: string | null
+  products: string[]
   granularity: Granularity
   channels: boolean
 }

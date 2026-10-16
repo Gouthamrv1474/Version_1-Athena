@@ -116,7 +116,7 @@ export function Inputs() {
     <div>
       <StepHeader n={4} title="Inputs" lead="Add the data and drivers behind your assumptions. Switch an add-on module off to leave its inputs out of the model." />
 
-      <History />
+      {s.path === 'market' && <History />}
 
       {s.path === 'epi' && (
         <Section title="Epidemiology module" module="epi" desc="Projects originator volume from the patient-level assumptions in step 3.">

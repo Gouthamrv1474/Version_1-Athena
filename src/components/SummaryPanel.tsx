@@ -17,7 +17,7 @@ export function SummaryPanel() {
   const defined = definedCount(s)
   const ch = channelTotal(s)
   const modulesOn = Object.entries(s.modules).filter(([, v]) => v).map(([k]) => ({ epi: 'Epi', events: 'Events', segments: 'Segments', sku: 'SKU mix' })[k as 'epi'])
-  const ready = !!s.level && s.scope.geos.length > 0 && !!s.scope.product
+  const ready = !!s.level && s.scope.geos.length > 0 && s.scope.products.length > 0
 
   return (
     <aside aria-label="Forecast summary" className="lg:sticky lg:top-4 card p-4">
@@ -33,7 +33,7 @@ export function SummaryPanel() {
         <Row k="Geography">
           {s.scope.geos.length ? (s.scope.geos.length > 2 ? `${s.scope.geos.length} selected` : s.scope.geos.join(', ')) : NOT_SET}
         </Row>
-        <Row k="Product">{s.scope.product ?? NOT_SET}</Row>
+        <Row k="Product">{s.scope.products.length ? s.scope.products.join(', ') : NOT_SET}</Row>
         <Row k="Time granularity">{s.scope.granularity}</Row>
         <Row k="Channel granularity">{s.scope.channels ? 'Yes' : 'No'}</Row>
       </dl>

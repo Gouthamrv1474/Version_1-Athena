@@ -1,0 +1,13 @@
+type,name,value,unit,source,comment
+geography,Spain,,,,
+geography,Atlantis,,,,
+product,Product D (inhaler),,,,
+product,Product Z,,,,
+setting,granularity,Weekly,,,
+setting,channels,Maybe,,,
+setting,currency,USD,,,
+assumption,Market size,abc,,IQVIA,Non-numeric value
+assumption,Market growth rate,2.8,,Guesswork,Unknown source
+assumption,Price erosion per year,4,%,Internal estimate,
+assumption,,5,,,Missing name
+widget,Foo,1,,,Unknown type

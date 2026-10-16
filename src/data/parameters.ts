@@ -46,3 +46,8 @@ export function defaultParamIds(path: Path, level: Level): string[] {
   if (level !== 'sdz') return base
   return [...base, 'gxPen', 'netDiscount', 'launch', ...(path === 'epi' ? ['sdzGxShare'] : [])]
 }
+
+export const findParamId = (name: string) => {
+  const n = name.toLowerCase()
+  return Object.values(PARAMS).find((p) => p.id.toLowerCase() === n || p.name.toLowerCase() === n)?.id
+}

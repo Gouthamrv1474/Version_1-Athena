@@ -1,11 +1,12 @@
 import { create } from 'zustand'
 import { ANALOGUES, CHANNELS, DEFAULT_EVENTS, RISK_ITEMS, SKUS } from '../data/lists'
-import { PARAMS, defaultParamIds } from '../data/parameters'
+import { PARAMS, defaultParamIds, findParamId } from '../data/parameters'
+import type { SetupData } from '../data/setup'
 import type { Assumption, Inputs, Level, ModelCfg, ModuleKey, Path, Scope } from './types'
 
 export const STEPS = [
-  { n: 1, name: 'Start', short: 'Choose where to start' },
-  { n: 2, name: 'Forecast level', short: 'Level and scope' },
+  { n: 1, name: 'Start', short: 'Starting point and level' },
+  { n: 2, name: 'Scope', short: 'Geography and products' },
   { n: 3, name: 'Assumptions', short: 'Key parameters' },
   { n: 4, name: 'Inputs', short: 'Data and drivers' },
   { n: 5, name: 'Output', short: 'Run and review' },
@@ -15,6 +16,12 @@ const toRow = (id: string): Assumption => {
   const p = PARAMS[id]
   return { id, name: p.name, unit: p.unit, value: '', source: '', comment: '' }
 }
+/** Predicate: does this table row correspond to the uploaded assumption? */
+const matches = (a: { name: string }) => {
+  const id = findParamId(a.name)
+  return (r: Assumption) => (id ? r.id === id : r.name.toLowerCase() === a.name.toLowerCase())
+}
+export const isNewAssumption = (rows: Assumption[], a: { name: string }) => !rows.some(matches(a))
 export const rowsFor = (path: Path, level: Level) => defaultParamIds(path, level).map(toRow)
 
 const defaultSplit = () =>
@@ -57,6 +64,7 @@ interface Actions {
   addCustom: () => void
   removeAssumption: (id: string) => void
   fillSample: () => void
+  importSetup: (d: SetupData) => void
   setInputs: (patch: Partial<Inputs>) => void
   setModule: (k: ModuleKey, on: boolean) => void
   setRun: (r: State['run'], ranWith?: string | null) => void
@@ -74,7 +82,7 @@ export const useForecast = create<State & Actions>((set) => ({
   step: 1,
   path: null,
   level: null,
-  scope: { geos: [], product: null, granularity: 'Monthly', channels: false },
+  scope: { geos: [], products: [], granularity: 'Monthly', channels: false },
   assumptions: [],
   inputs: freshInputs(),
   modules: modulesFor(null, null),
@@ -88,8 +96,12 @@ export const useForecast = create<State & Actions>((set) => ({
 
   go: (step) => set({ step }),
   // Changing path or level resets the assumptions table, add-on switches and the run.
+  // The chosen level survives a path change so the user only re-picks what they changed.
   setPath: (path) =>
-    set({ path, level: null, assumptions: [], modules: modulesFor(path, null), run: 'idle', ranWith: null }),
+    set((s) => ({
+      path, assumptions: s.level ? rowsFor(path, s.level) : [], modules: modulesFor(path, s.level),
+      run: 'idle', ranWith: null,
+    })),
   setLevel: (level) =>
     set((s) => ({
       level, assumptions: rowsFor(s.path, level), modules: modulesFor(s.path, level),
@@ -121,6 +133,28 @@ export const useForecast = create<State & Actions>((set) => ({
         source: a.source || 'Internal estimate',
       })),
     })),
+  // Fills scope and assumptions from an uploaded setup file. Needs a level so the table exists.
+  importSetup: (d) =>
+    set((s) => {
+      const rows = [...s.assumptions]
+      d.assumptions.forEach((a) => {
+        const id = findParamId(a.name)
+        const i = rows.findIndex(matches(a))
+        const patch = { value: a.value, ...(a.source && { source: a.source }), ...(a.comment && { comment: a.comment }) }
+        if (i >= 0) rows[i] = { ...rows[i], ...patch }
+        else rows.push(id ? { ...toRow(id), ...patch } : { id: `custom-${Date.now()}-${rows.length}`, name: a.name, unit: a.unit, source: '', comment: '', ...patch })
+      })
+      return {
+        assumptions: rows,
+        scope: {
+          ...s.scope,
+          geos: d.geos.length ? d.geos : s.scope.geos,
+          products: d.products.length ? d.products : s.scope.products,
+          granularity: d.granularity ?? s.scope.granularity,
+          channels: d.channels ?? s.scope.channels,
+        },
+      }
+    }),
   setInputs: (p) => set((s) => ({ inputs: { ...s.inputs, ...p } })),
   setModule: (k, on) => set((s) => ({ modules: { ...s.modules, [k]: on } })),
   setRun: (run, ranWith) => set((s) => ({ run, ranWith: ranWith === undefined ? s.ranWith : ranWith })),
@@ -134,24 +168,23 @@ export const definedCount = (s: State) => s.assumptions.filter(isDefined).length
 export const channelTotal = (s: State) => Object.values(s.inputs.channelSplit).reduce((a, b) => a + b, 0)
 export const skuTotal = (s: State) => s.inputs.skuMix.reduce((a, b) => a + b.share, 0)
 export const historyRequired = (s: State) => s.path === 'market'
-export const scopeComplete = (s: State) => s.scope.geos.length > 0 && !!s.scope.product
+export const scopeComplete = (s: State) => s.scope.geos.length > 0 && s.scope.products.length > 0
 
 /** Returns a reason string if the step is locked, else null. */
 export function lockReason(s: State, n: number): string | null {
   if (n === 1) return null
   if (!s.path) return 'Choose where to start first'
-  if (n === 2) return null
   if (!s.level) return 'Choose a forecast level first'
-  if (n === 5 && !scopeComplete(s)) return 'Select a geography and a product in step 2'
+  if (n === 5 && !scopeComplete(s)) return 'Select a geography and at least one product in step 2'
   return null
 }
 
 export function isComplete(s: State, n: number): boolean {
   switch (n) {
-    case 1: return !!s.path
-    case 2: return !!s.level && scopeComplete(s)
+    case 1: return !!s.path && !!s.level
+    case 2: return scopeComplete(s)
     case 3: return s.assumptions.length > 0 && definedCount(s) === s.assumptions.length
-    case 4: return !historyRequired(s) || !!s.inputs.history
+    case 4: return !!s.inputs.history
     case 5: return s.run === 'done'
     default: return false
   }
